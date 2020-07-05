@@ -1,138 +1,131 @@
-const mysql = require('mysql2');
-// Conect to employee_db database
-const db = mysql.createConnection({
-  host: 'localhost',
-  port: 3306,
-  user: 'root',
-  password: 'rootroot',
-  database: 'employee_db',
-  multipleStatements: true
-});
+const inquirer = require('inquirer');
+const db = require('./database');
+const {
+  addEmployee,
+  removeEmployee,
+  updateEmployeeManager,
+  updateEmployeeRole,
+  displayAllEmployees,
+  displayAllEmployeesByDepartment,
+  displayAllEmployeesByManager
+} = require('./controllers/employee');
+const {
+  addDepartment,
+  removeDepartment,
+  displayAllDepartments
+} = require('./controllers/department');
+const { addRole, removeRole, displayAllRoles } = require('./controllers/role');
+const {
+  displayTotalBudget,
+  displayTotalDepartmentBudget
+} = require('./controllers/budget');
+const { displayBanner } = require('./utils/banner');
 
-const database = {
-  dropEmployeeTable: 'DROP TABLE IF EXISTS employee',
-  dropRoleTable: 'DROP TABLE IF EXISTS role',
-  dropDepartmentTable: 'DROP TABLE IF EXISTS department',
-  createDepartmentTable: `CREATE TABLE IF NOT EXISTS department (
-    id INT AUTO_INCREMENT,
-    name VARCHAR(30) NOT NULL,
-    PRIMARY KEY(id)
-  )`,
-  createRoleTable: `CREATE TABLE IF NOT EXISTS role (
-    id INT AUTO_INCREMENT,
-    title VARCHAR(30) NOT NULL,
-    salary DECIMAL NOT NULL,
-    department_id INT NOT NULL,
-    PRIMARY KEY(id),
-    FOREIGN KEY(department_id) REFERENCES department(id)
-  )`,
-  createEmployeeTable: `CREATE TABLE IF NOT EXISTS employee(
-    id INT AUTO_INCREMENT,
-    first_name VARCHAR(30) NOT NULL,
-    last_name VARCHAR(30) NOT NULL,
-    role_id INT NOT NULL,
-    manager_id INT,
-    PRIMARY KEY(id),
-    FOREIGN KEY(role_id) REFERENCES role(id),
-    FOREIGN KEY(manager_id) REFERENCES employee(id) 
-  )`,
-  reset: function() {
-    db.query(this.dropEmployeeTable, err => {
-      if (err) throw err;
-    });
+async function init() {
+  db.dropAndInit();
+  await displayBanner();
+  await app();
+}
 
-    db.query(this.dropRoleTable, err => {
-      if (err) throw err;
-    });
+async function app() {
+  console.log('\n');
+  const answer = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'action',
+      message: 'Select an option?',
+      choices: [
+        'View All Employees',
+        'View All Employees by Department',
+        'View All Employees by Manager',
+        'View All Roles',
+        'View All Departments',
+        'Add Employee',
+        'Remove Employee',
+        'Update Employee Manager',
+        'Update Employee Role',
+        'Add Department',
+        'Remove Department',
+        'Add Role',
+        'Remove Role',
+        'View Total Budget',
+        'View Total Department Budget',
+        'Exit'
+      ]
+    }
+  ]);
 
-    db.query(this.dropDepartmentTable, err => {
-      if (err) throw err;
-    });
-
-    db.query(this.createDepartmentTable, err => {
-      if (err) throw err;
-    });
-
-    db.query(this.createRoleTable, err => {
-      if (err) throw err;
-    });
-
-    db.query(this.createEmployeeTable, err => {
-      if (err) throw err;
-    });
-  },
-  init: function() {
-    // Seed department table
-    db.query(
-      `INSERT INTO department (name) 
-        VALUES 
-          ('Sales'),
-          ('Legal'),
-          ('Fianace'),
-          ('Engineering')`,
-      err => {
-        if (err) {
-          console.log(err);
-          throw err;
-        }
-      }
-    );
-
-    // Seed role table
-    db.query(
-      `INSERT INTO role (title, salary, department_id) 
-        VALUES 
-          ('Sales Lead', 100000, 1),
-          ('Salesperson', 80000, 1),
-          ('Lawyer', 190000, 2),
-          ('Legal Team Lead', 250000, 2),
-          ('Accountant', 125000, 3),
-          ('Software Engineer', 120000, 4),
-          ('Lead Software Engineer', 180000, 4)`,
-      err => {
-        if (err) {
-          console.log(err);
-          throw err;
-        }
-      }
-    );
-
-    // Seed employees
-    db.query(
-      `INSERT INTO employee (first_name, last_name, role_id, manager_id) 
-        VALUES 
-          ('Janny', 'Moris', 5, null),
-          ('Samantha', 'Jackson', 4, 1),
-          ('Suuny', 'Lawn', 1, null),
-          ('James', 'Patterson', 2, 3),
-          ('Chelsey', 'Dietrich', 5, null)`,
-      err => {
-        if (err) {
-          console.log(err);
-          throw err;
-        }
-      }
-    );
-  },
-  dropAndInit: function() {
-    this.reset();
-    this.init();
-  },
-  dropAndEnd: function() {
-    db.query(this.dropEmployeeTable, err => {
-      if (err) throw err;
-    });
-
-    db.query(this.dropRoleTable, err => {
-      if (err) throw err;
-    });
-
-    db.query(this.dropDepartmentTable, err => {
-      if (err) throw err;
-    });
-
-    db.end();
+  switch (answer.action.toLowerCase()) {
+    case 'view all employees':
+      await displayAllEmployees();
+      app();
+      break;
+    case 'view all employees by department':
+      await displayAllEmployeesByDepartment();
+      app();
+      break;
+    case 'view all employees by manager':
+      await displayAllEmployeesByManager();
+      app();
+      break;
+    case 'view all roles':
+      await displayAllRoles();
+      app();
+      break;
+    case 'view all departments':
+      await displayAllDepartments();
+      app();
+      break;
+    case 'add employee':
+      await addEmployee();
+      app();
+      break;
+    case 'remove employee':
+      await removeEmployee();
+      app();
+      break;
+    case 'update employee manager':
+      await updateEmployeeManager();
+      app();
+      break;
+    case 'update employee role':
+      await updateEmployeeRole();
+      app();
+      break;
+    case 'update employee department':
+      await updateEmployeeDepartment();
+      app();
+      break;
+    case 'add department':
+      await addDepartment();
+      app();
+      break;
+    case 'remove department':
+      await removeDepartment();
+      app();
+      break;
+    case 'add role':
+      await addRole();
+      app();
+      break;
+    case 'remove role':
+      await removeRole();
+      app();
+      break;
+    case 'view total budget':
+      await displayTotalBudget();
+      app();
+      break;
+    case 'view total department budget':
+      await displayTotalDepartmentBudget();
+      app();
+      break;
+    case 'exit':
+      console.log('Have a nice day!');
+      db.dropAndEnd();
+    default:
+      break;
   }
-};
+}
 
-module.exports = database;
+init();
