@@ -1,131 +1,254 @@
-const inquirer = require('inquirer');
-const db = require('./database');
-const {
-  addEmployee,
-  removeEmployee,
-  updateEmployeeManager,
-  updateEmployeeRole,
-  displayAllEmployees,
-  displayAllEmployeesByDepartment,
-  displayAllEmployeesByManager
-} = require('./controllers/employee');
-const {
-  addDepartment,
-  removeDepartment,
-  displayAllDepartments
-} = require('./controllers/department');
-const { addRole, removeRole, displayAllRoles } = require('./controllers/role');
-const {
-  displayTotalBudget,
-  displayTotalDepartmentBudget
-} = require('./controllers/budget');
-const { displayBanner } = require('./utils/banner');
+const inquirer = require("inquirer");
+const mysql = require('mysql2');
+const cTable = require("console.table");
 
-async function init() {
-  db.dropAndInit();
-  await displayBanner();
-  await app();
-}
+const connection = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: 'rootroot',
+    database: 'employees_db'
+});
 
-async function app() {
-  console.log('\n');
-  const answer = await inquirer.prompt([
-    {
-      type: 'list',
-      name: 'action',
-      message: 'Select an option?',
-      choices: [
-        'View All Employees',
-        'View All Employees by Department',
-        'View All Employees by Manager',
-        'View All Roles',
-        'View All Departments',
-        'Add Employee',
-        'Remove Employee',
-        'Update Employee Manager',
-        'Update Employee Role',
-        'Add Department',
-        'Remove Department',
-        'Add Role',
-        'Remove Role',
-        'View Total Budget',
-        'View Total Department Budget',
-        'Exit'
-      ]
+connection.connect((err) => {
+    if (err) {
+        console.error('error connecting: ' + err.stack);
+        return;
     }
-  ]);
+    StartQuestions();
+});
 
-  switch (answer.action.toLowerCase()) {
-    case 'view all employees':
-      await displayAllEmployees();
-      app();
-      break;
-    case 'view all employees by department':
-      await displayAllEmployeesByDepartment();
-      app();
-      break;
-    case 'view all employees by manager':
-      await displayAllEmployeesByManager();
-      app();
-      break;
-    case 'view all roles':
-      await displayAllRoles();
-      app();
-      break;
-    case 'view all departments':
-      await displayAllDepartments();
-      app();
-      break;
-    case 'add employee':
-      await addEmployee();
-      app();
-      break;
-    case 'remove employee':
-      await removeEmployee();
-      app();
-      break;
-    case 'update employee manager':
-      await updateEmployeeManager();
-      app();
-      break;
-    case 'update employee role':
-      await updateEmployeeRole();
-      app();
-      break;
-    case 'update employee department':
-      await updateEmployeeDepartment();
-      app();
-      break;
-    case 'add department':
-      await addDepartment();
-      app();
-      break;
-    case 'remove department':
-      await removeDepartment();
-      app();
-      break;
-    case 'add role':
-      await addRole();
-      app();
-      break;
-    case 'remove role':
-      await removeRole();
-      app();
-      break;
-    case 'view total budget':
-      await displayTotalBudget();
-      app();
-      break;
-    case 'view total department budget':
-      await displayTotalDepartmentBudget();
-      app();
-      break;
-    case 'exit':
-      console.log('Have a nice day!');
-      db.dropAndEnd();
-    default:
-      break;
-  }
-}
+const StartQuestions = () => {
+    inquirer
+        .prompt({
+            name: "first-question",
+            type: "list",
+            message: "What would you like to do?",
+            choices: ["View all departments", "View all roles", "View all employees", "Add employee", "Update employee role", "Remove employee", "exit"]
+        }).then(answer => {
+            switch (answer["first-question"]) {
+                case "View all departments":
+                    viewAllDepartments();
+                    break;
+                case "View all roles":
+                    viewAllRoles();
+                    break;
+                case "View all employees":
+                    viewAllEmployees();
+                    break;
+                case "Add employee":
+                    addEmployee();
+                    break;
+                case "Update employee role":
+                    updateEmployeeRole();
+                    break;
+                case "Remove employee":
+                    removeEmployee();
+                    break;
+                case "exit":
+                    connection.end();
+                    break;
+                default:
+                    break;
+            }
+        })
+};
 
-init();
+const viewAllDepartments = () => {
+    const query = "SELECT * FROM department;";
+    connection.query(query, (err, res) => {
+        if (err) throw err;
+        res.forEach(r => {
+            console.table([
+                {
+                    id: r.id,
+                    name: r.name
+                },
+            ]);
+        });
+        StartQuestions();
+    });
+};
+
+const viewAllRoles = () => {
+    const query = "SELECT * FROM role;";
+    connection.query(query, (err, res) => {
+        if (err) throw err;
+        res.forEach(r => {
+            console.table([
+                {
+                    id: r.id,
+                    title: r.title,
+                    salary: r.salary
+                },
+            ]);
+        });
+        StartQuestions();
+    });
+};
+
+const viewAllEmployees = () => {
+    const query = "SELECT * FROM employee;";
+    connection.query(query, (err, res) => {
+        if (err) throw err;
+        res.forEach(r => {
+            console.table([
+                {
+                    id: r.id,
+                    first_name: r.first_name,
+                    last_name: r.last_name,
+                    role: r.role_id,
+                    manager: r.manager
+                },
+            ]);
+        });
+        StartQuestions();
+    });
+};
+
+const addEmployee = () => {
+
+    connection.query("SELECT * FROM role;", (err, res) => {
+
+        if (err) throw err;
+        const roles = [];
+
+        res.forEach(r => {
+            roles.push(`${r.id} ${r.title}`)
+        });
+
+        inquirer.prompt([
+            {
+                name: "first_name",
+                type: "input",
+                message: "Enter first name"
+            },
+            {
+                name: "last_name",
+                type: "input",
+                message: "Enter last name"
+
+            },
+            {
+                name: "roles",
+                type: "list",
+                message: "Choose their role",
+                choices: roles
+            },
+            {
+                name: "role_id",
+                type: "input",
+                message: "Enter role ID (# listed before name of role)"
+            },
+            {
+                name: "manager_id",
+                type: "input",
+                message: "Enter manager ID"
+            }
+        ]).then(answer => {
+
+            const { first_name, last_name, role_id, manager_id } = answer;
+
+            const query = "INSERT INTO employee (`first_name`,`last_name`, `role_id` ) VALUES (?, ?, ?);"
+            connection.query(query, [first_name, last_name, role_id], (err, res) => {
+                if (err) throw err;
+                console.log("Employee sucessfully added")
+                StartQuestions();
+            })
+        });
+    })
+
+};
+
+const updateEmployeeRole = () => {
+
+    const employeeQuery = "SELECT * FROM `employee`;";
+    const roleQuery = "SELECT * FROM `role`;";
+    const updateQuery = "UPDATE employee SET `role_id` = ? WHERE `id` = ?;"
+    const employees = [];
+    const roles = [];
+
+    connection.query(employeeQuery, (err, res) => {
+
+        res.forEach(r => {
+            employees.push(`${r.id} ${r.first_name} ${r.last_name}`)
+        });
+
+        if (err) throw err;
+
+        connection.query(roleQuery, (err, res) => {
+
+            res.forEach(r => {
+                roles.push(`${r.id} ${r.title} ${r.salary}`)
+            });
+
+            inquirer.prompt([
+                {
+                    name: "remove",
+                    type: "list",
+                    message: "Who's role would you like to update?",
+                    choices: employees
+                },
+                {
+                    name: "employeeId",
+                    type: "input",
+                    message: "Enter their ID number (# listed before name)"
+                },
+                {
+                    name: "roles",
+                    type: "list",
+                    choices: roles,
+                    message: "Choose their new role"
+                },
+                {
+                    name: "roleId",
+                    type: "input",
+                    message: "Enter ID number of role (# listed before name)"
+                }
+            ]).then(answer => {
+
+                connection.query(updateQuery, [answer.roleId, answer.employeeId], (err, res) => {
+                    if (err) throw err;
+                    console.log("Employee role updated!");
+                    StartQuestions();
+                })
+            });
+
+        });
+    });
+};
+
+const removeEmployee = () => {
+    const query = "SELECT * FROM `employee`;";
+
+    connection.query(query, (err, res) => {
+
+        const employees = [];
+
+        res.forEach(r => {
+            employees.push(`${r.id} ${r.first_name} ${r.last_name}`)
+        })
+
+        if (err) throw err;
+        inquirer.prompt([
+            {
+                name: "remove",
+                type: "list",
+                message: "Who would you like to remove?",
+                choices: employees
+            },
+            {
+                name: "id",
+                type: "input",
+                message: "Enter ID number (# listed before name)"
+            }
+        ]).then(answer => {
+            const query = "DELETE FROM employee WHERE id=?;";
+            connection.query(query, [answer.id], (err, res) => {
+                if (err) throw err;
+                console.log("Employee succesfully deleted");
+                StartQuestions();
+            })
+        })
+    });
+
+};
