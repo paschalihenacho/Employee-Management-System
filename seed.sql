@@ -13,9 +13,9 @@ CREATE TABLE employee (
 
 CREATE TABLE role (
     id INT AUTO_INCREMENT NOT NULL, 
-    title VARCHAR(30),
-    salary DECIMAL(7,2),
-    department_id INT,
+    title VARCHAR(30) NOT NULL,
+    salary DECIMAL(10,2) NOT NULL,
+    department_id INT NOT NULL,
     PRIMARY KEY(id)
 );
 
@@ -26,9 +26,25 @@ CREATE TABLE department (
 );
 
 
-INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("Paschal", "Ihenacho", 11, 22);
+INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES 
+("Paschal", "Ihenacho", 11, 22), 
+("Nancy", "Ward", 12, 23), 
+("Frank", "Perez", 13, 24), 
+("Susan", "More", 14, 25),
+("John", "Doe", 15, 26);
 
-INSERT INTO department (name) VALUES ("Technology");
+INSERT INTO department (name) VALUES 
+("Technology"),
+("Sales"),
+("Finance"),
+("Technology"),
+("HR");
 
-INSERT INTO role (title, salary, department_id) VALUES ("Jr. Developer", 100000.00, 33);
-SELECT * FROM employee LIMIT 0, 1000
+INSERT INTO role (title, salary, department_id) VALUES 
+("Jr. Developer", 86000.00, 1),
+("Lead Salesman", 65000.00, 2),
+("Manager", 88000.00, 3),
+("QA", 70000.00, 4),
+("HR Associate", 65000.00, 5);
+
+SELECT * FROM employee LIMIT 0, 1000;

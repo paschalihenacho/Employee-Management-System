@@ -9,15 +9,16 @@ const connection = mysql.createConnection({
     database: 'employees_db'
 });
 
+
 connection.connect((err) => {
     if (err) {
         console.error('error connecting: ' + err.stack);
         return;
     }
-    StartQuestions();
+    Questions();
 });
 
-const StartQuestions = () => {
+const Questions = () => {
     inquirer
         .prompt({
             name: "first-question",
@@ -54,56 +55,28 @@ const StartQuestions = () => {
 };
 
 const viewAllDepartments = () => {
-    const query = "SELECT * FROM department;";
-    connection.query(query, (err, res) => {
-        if (err) throw err;
-        res.forEach(r => {
-            console.table([
-                {
-                    id: r.id,
-                    name: r.name
-                },
-            ]);
-        });
-        StartQuestions();
+    connection.query("SELECT id, name FROM department", (err, res) => {
+      if (err) throw err;
+      console.table(res);
+      Questions();
     });
-};
+  };
 
 const viewAllRoles = () => {
-    const query = "SELECT * FROM role;";
-    connection.query(query, (err, res) => {
-        if (err) throw err;
-        res.forEach(r => {
-            console.table([
-                {
-                    id: r.id,
-                    title: r.title,
-                    salary: r.salary
-                },
-            ]);
-        });
-        StartQuestions();
+    connection.query("SELECT id, title, salary FROM role", (err, res) => {
+      if (err) throw err;
+      console.table(res);
+      Questions();
     });
-};
+  };
 
 const viewAllEmployees = () => {
-    const query = "SELECT * FROM employee;";
-    connection.query(query, (err, res) => {
-        if (err) throw err;
-        res.forEach(r => {
-            console.table([
-                {
-                    id: r.id,
-                    first_name: r.first_name,
-                    last_name: r.last_name,
-                    role: r.role_id,
-                    manager: r.manager
-                },
-            ]);
-        });
-        StartQuestions();
+    connection.query("SELECT id, first_name, last_name, role_id, manager_id FROM employee", (err, res) => {
+      if (err) throw err;
+      console.table(res);
+      Questions();
     });
-};
+  };
 
 const addEmployee = () => {
 
@@ -152,7 +125,7 @@ const addEmployee = () => {
             connection.query(query, [first_name, last_name, role_id], (err, res) => {
                 if (err) throw err;
                 console.log("Employee sucessfully added")
-                StartQuestions();
+                Questions();
             })
         });
     })
@@ -209,7 +182,7 @@ const updateEmployeeRole = () => {
                 connection.query(updateQuery, [answer.roleId, answer.employeeId], (err, res) => {
                     if (err) throw err;
                     console.log("Employee role updated!");
-                    StartQuestions();
+                    Questions();
                 })
             });
 
@@ -246,7 +219,7 @@ const removeEmployee = () => {
             connection.query(query, [answer.id], (err, res) => {
                 if (err) throw err;
                 console.log("Employee succesfully deleted");
-                StartQuestions();
+                Questions();
             })
         })
     });
