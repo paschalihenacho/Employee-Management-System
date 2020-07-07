@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/paschalihenacho/Employee-Management-System#readme",
   "dependencies": {
+    "asciiart-logo": "^0.2.6",
     "console.table": "^0.10.0",
     "figlet": "^1.4.0",
     "inquirer": "^7.3.0",

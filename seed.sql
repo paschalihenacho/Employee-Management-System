@@ -27,11 +27,11 @@ CREATE TABLE department (
 
 
 INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES 
-("Paschal", "Ihenacho", 11, 22), 
+("Paschal", "Ihenacho", 11, 0), 
 ("Nancy", "Ward", 12, 23), 
 ("Frank", "Perez", 13, 24), 
-("Susan", "More", 14, 25),
-("John", "Doe", 15, 26);
+("Susan", "More", 14, 0),
+("John", "Doe", 15, 0);
 
 INSERT INTO department (name) VALUES 
 ("Technology"),
@@ -46,5 +46,4 @@ INSERT INTO role (title, salary, department_id) VALUES
 ("Manager", 88000.00, 3),
 ("QA", 70000.00, 4),
 ("HR Associate", 65000.00, 5);
-
-SELECT * FROM employee LIMIT 0, 1000;
+SELECT * FROM employee LIMIT 0, 1000

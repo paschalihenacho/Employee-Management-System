@@ -1,6 +1,9 @@
 const inquirer = require("inquirer");
 const mysql = require('mysql2');
 const cTable = require("console.table");
+const logo = require('asciiart-logo');
+const config = require('./package.json');
+console.log(logo(config).render());
 
 const connection = mysql.createConnection({
     host: 'localhost',
@@ -8,7 +11,6 @@ const connection = mysql.createConnection({
     password: 'rootroot',
     database: 'employees_db'
 });
-
 
 connection.connect((err) => {
     if (err) {
@@ -24,28 +26,28 @@ const Questions = () => {
             name: "first-question",
             type: "list",
             message: "What would you like to do?",
-            choices: ["View all departments", "View all roles", "View all employees", "Add employee", "Update employee role", "Remove employee", "exit"]
+            choices: [ "View All Employees", "View All Departments", "View All Roles", "Add Employee", "Update Employee Role", "Remove Employee", "Exit"]
         }).then(answer => {
             switch (answer["first-question"]) {
-                case "View all departments":
+                case "View All Departments":
                     viewAllDepartments();
                     break;
-                case "View all roles":
+                case "View All Roles":
                     viewAllRoles();
                     break;
-                case "View all employees":
+                case "View All Employees":
                     viewAllEmployees();
                     break;
-                case "Add employee":
+                case "Add Employee":
                     addEmployee();
                     break;
-                case "Update employee role":
+                case "Update Employee Role":
                     updateEmployeeRole();
                     break;
-                case "Remove employee":
+                case "Remove Employee":
                     removeEmployee();
                     break;
-                case "exit":
+                case "Exit":
                     connection.end();
                     break;
                 default:
